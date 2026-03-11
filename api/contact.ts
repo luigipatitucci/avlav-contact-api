@@ -7,7 +7,7 @@ type ContactBody = {
   message?: string
 }
 
-const ALLOWED_ORIGIN = "https://avlav.com.ar"
+const ALLOWED_ORIGIN = "https://avlav-6xag.vercel.app/"
 
 export default async function handler(req: any, res: any) {
   res.setHeader("Access-Control-Allow-Origin", ALLOWED_ORIGIN)
