@@ -7,10 +7,20 @@ type ContactBody = {
   message?: string
 }
 
-const ALLOWED_ORIGIN = "https://avlav-6xag.vercel.app/"
+const allowedOrigins = [
+  "https://avlav-6xag.vercel.app",
+  "https://avlav.com.ar",
+  "https://www.avlav.com.ar"
+]
 
 export default async function handler(req: any, res: any) {
-  res.setHeader("Access-Control-Allow-Origin", ALLOWED_ORIGIN)
+  const origin = req.headers.origin
+
+  if (origin && allowedOrigins.includes(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin)
+  }
+
+  res.setHeader("Vary", "Origin")
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS")
   res.setHeader("Access-Control-Allow-Headers", "Content-Type")
 
