@@ -1,41 +1,29 @@
 import nodemailer from "nodemailer"
 
-type ContactBody = {
-  name?: string
-  email?: string
-  project?: string
-  message?: string
-}
-
-export default async function handler(req: any, res: any) {
+export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*")
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS")
   res.setHeader("Access-Control-Allow-Headers", "Content-Type")
-  res.setHeader("Vary", "Origin")
 
   if (req.method === "OPTIONS") {
     return res.status(200).end()
   }
 
   if (req.method !== "POST") {
-    return res.status(405).json({ ok: false, error: "Method not allowed" })
+    return res.status(405).json({
+      ok: false,
+      error: "Method not allowed"
+    })
   }
 
   try {
-    const { name, email, project, message }: ContactBody = req.body ?? {}
+    const body = typeof req.body === "string" ? JSON.parse(req.body) : req.body
+    const { name, email, project, message } = body || {}
 
-    if (!name || !email || !project || !message) {
+    if (!name || !email || !message) {
       return res.status(400).json({
         ok: false,
         error: "Missing required fields"
-      })
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(email)) {
-      return res.status(400).json({
-        ok: false,
-        error: "Invalid email"
       })
     }
 
@@ -53,11 +41,11 @@ export default async function handler(req: any, res: any) {
       from: process.env.SMTP_FROM,
       to: process.env.CONTACT_TO,
       replyTo: email,
-      subject: `Nuevo contacto desde AVLAV - ${project}`,
+      subject: `Nuevo contacto desde AVLAV${project ? ` - ${project}` : ""}`,
       text: `
 Nombre: ${name}
 Email: ${email}
-Proyecto: ${project}
+Proyecto: ${project || "No especificado"}
 
 Mensaje:
 ${message}
@@ -66,7 +54,7 @@ ${message}
         <h2>Nuevo contacto desde AVLAV</h2>
         <p><strong>Nombre:</strong> ${escapeHtml(name)}</p>
         <p><strong>Email:</strong> ${escapeHtml(email)}</p>
-        <p><strong>Proyecto:</strong> ${escapeHtml(project)}</p>
+        <p><strong>Proyecto:</strong> ${escapeHtml(project || "No especificado")}</p>
         <p><strong>Mensaje:</strong></p>
         <p>${escapeHtml(message).replace(/\n/g, "<br/>")}</p>
       `
@@ -74,7 +62,7 @@ ${message}
 
     return res.status(200).json({ ok: true })
   } catch (error) {
-    console.error("Contact API error:", error)
+    console.error("CONTACT API ERROR:", error)
     return res.status(500).json({
       ok: false,
       error: "Internal server error"
@@ -82,8 +70,8 @@ ${message}
   }
 }
 
-function escapeHtml(value: string) {
-  return value
+function escapeHtml(value) {
+  return String(value)
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
